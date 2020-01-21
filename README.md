@@ -78,7 +78,7 @@ The call to `update_state()` in this scenario should do something like this:<br>
 ```python
 
 def update_state(self, y_true, y_pred, sample_weight=None):
-    y_pred = tf.cast(tf.argmax(y_pred), dtype=tf.int64)
+    y_pred = tf.cast(tf.argmax(y_pred, axis=-1), dtype=tf.int64)
     
     ###### Checks ################
     #
