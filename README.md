@@ -56,4 +56,48 @@ def update_state(self, y_true, y_pred, sample_weight=None):
 
 ```
 
+### Case 2: Multiclass Classification problem
+In this case, the model would look something like this:
+```python
 
+model = Sequential()
+model.add(..)
+...
+model.add(Dense(num_classes, activation='softmax'))
+model.compile(loss='categorical_crossentropy', optimier='sgd', metrics=['accuracy', 
+                                                                    CohensKappa(num_classes=num_classes)])
+model.fit(..)
+
+```
+In this case
+
+`y_pred` shape: (num_samples, num_classes)<br>
+`y_true` shape: (num_samples, num_classes) if `onr-hot encoded` or (num_samples,) if `sparse labels` are used
+
+The call to `update_state()` in this scenario should do something like this:<br>
+```python
+
+def update_state(self, y_true, y_pred, sample_weight=None):
+    y_true = tf.cast(y_true, dtype=tf.int64)
+    y_pred = tf.cast(tf.argmax(y_pred), dtype=tf.int64)
+    
+    ###### Checks ################
+    #
+    # We need some checks here depending on whether the true labels are one-hote encoded 
+    # or are just sparse. Until unless we do this check we can't get the right shape
+    # for y_true and y_pred
+    #
+    ################################
+
+    # compute the new values of the confusion matrix
+    new_conf_mtx = tf.math.confusion_matrix(
+        labels=y_true,
+        predictions=y_pred,
+        num_classes=self.num_classes,
+        weights=sample_weight,
+        dtype=tf.float32)
+
+    # update the values in the original confusion matrix
+    return self.conf_mtx.assign_add(new_conf_mtx)
+
+```
