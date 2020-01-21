@@ -5,8 +5,10 @@ We added Cohen’s Kappa in TF-addons a while back. The current [implementation]
 ```python
 actuals = np.array([4, 4, 3, 4, 2, 4, 1, 1], dtype=np.int32)
 preds = np.array([4, 4, 3, 4, 4, 2, 1, 1], dtype=np.int32)
+
 m = tfa.metrics.CohenKappa(num_classes=5)
 m.update_state(actuals, preds)
+
 print('Final result: ', m.result().numpy()) 
 
 ```
@@ -34,4 +36,24 @@ In this case
 `y_pred` shape: (num_samples, 1)<br>
 `y_true` shape: (num_samples, )<br>
 
-We can convert the preedictions into labels inside CohensKappa by simply doing `y_pred = y_pred > 0.5 ` and then calculate the kappa score.
+The call to `update_state()` in this scenario should do something like this:<br>
+```python
+
+def update_state(self, y_true, y_pred, sample_weight=None):
+    y_true = tf.cast(y_true, dtype=tf.int64)
+    y_pred = tf.cast(y_pred >= 0.5, dtype=tf.int64)
+
+    # compute the new values of the confusion matrix
+    new_conf_mtx = tf.math.confusion_matrix(
+        labels=y_true,
+        predictions=y_pred,
+        num_classes=self.num_classes,
+        weights=sample_weight,
+        dtype=tf.float32)
+
+    # update the values in the original confusion matrix
+    return self.conf_mtx.assign_add(new_conf_mtx)
+
+```
+
+
