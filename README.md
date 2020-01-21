@@ -175,7 +175,7 @@ class CohenKappa(Metric):
             i.e. not any one of [None, 'linear', 'quadratic']
         """
         
-        if round_pred == False:
+        if round_pred:
             self.update_state = update_reg_model
         
         if num_classes == 2:
