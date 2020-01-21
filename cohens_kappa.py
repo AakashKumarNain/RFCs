@@ -25,13 +25,13 @@ class CohenKappa(Metric):
             i.e. not any one of [None, 'linear', 'quadratic']
         """
         
-        if round_pred == False:
+        if round_pred:
             self.update_state = update_reg_model
         
-        if num_classes == 2:
+        if not round_pred and num_classes == 2:
             self.update_state = update_binary_class_model
             
-        if sparse_labels and num_classes > 2:
+        if not round_pred and sparse_labels and num_classes > 2:
             self.update_state = update_multi_class_model
             
         def update_reg_model(self, y_true, y_pred, sample_weight=None):
