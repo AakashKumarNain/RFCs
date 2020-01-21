@@ -176,15 +176,12 @@ class CohenKappa(Metric):
         """
         
         if round_pred == False:
-            self.__reg_model = False
             self.update_state = update_reg_model
         
         if num_classes == 2:
-            self.__binary_class_moel = True
             self.update_state = update_binary_class_model
             
         if sparse_labels and num_classes > 2:
-            self.__multi_class_model = True
             self.update_state = update_multi_class_model
             
         def update_reg_model(self, y_true, y_pred, sample_weight=None):
