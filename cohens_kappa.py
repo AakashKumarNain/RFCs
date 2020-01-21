@@ -69,12 +69,15 @@ class CohenKappa(Metric):
         super().__init__(name=name, dtype=dtype)
         
         if from_activations:
-            if round_pred or num_classes==2:
+            if round_pred:
                 self.update = self.update_reg_model
             elif sparse_labels:
                 self.update = self.update_multi_class_sparse_model
             else:
-                self.update = self.update_multi_class_model
+                if num_classes==2:
+                    self.update = self.update_binary_class_model
+                else:
+                    self.update = self.update_multi_class_model
         else:
             self.update = self.update_values
         
@@ -95,7 +98,6 @@ class CohenKappa(Metric):
         
         
     def update_reg_model(self, y_true, y_pred, sample_weight=None):
-        print("Regression model")
         y_true = tf.squeeze(tf.cast(y_true, dtype=tf.int64))
         y_pred = tf.squeeze(tf.cast(tf.math.round(y_pred), dtype=tf.int64))
 
@@ -112,13 +114,10 @@ class CohenKappa(Metric):
         return self.conf_mtx.assign_add(new_conf_mtx)
     
     def update_binary_class_model(self, y_true, y_pred, sample_weight=None):
-        print("Binary classification")
         y_true = tf.cast(y_true, dtype=tf.int64)
-        y_pred = tf.cast(y_pred > 0.5, dtype=tf.int64)
-        
-        y_true = tf.reshape(y_true, (y_true.shape[0],))
-        y_pred = tf.reshape(y_pred, (y_pred.shape[0],))
-
+        y_pred = tf.cast(y_pred > 0.5, dtype=tf.int64)   
+        y_true = tf.squeeze(y_true)
+        y_pred = tf.squeeze(y_pred)
 
         # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
@@ -134,10 +133,8 @@ class CohenKappa(Metric):
         
     
     def update_multi_class_model(self, y_true, y_pred, sample_weight=None):
-        print("Multi-class classification")
         y_true = tf.cast(tf.argmax(y_true, axis=-1), dtype=tf.int64)
         y_pred = tf.cast(tf.argmax(y_pred, axis=-1), dtype=tf.int64)
-
 
         # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
@@ -153,11 +150,10 @@ class CohenKappa(Metric):
     
     
     def update_multi_class_sparse_model(self, y_true, y_pred, sample_weight=None):
-        print("Multi-class sparse classification")
         y_true = tf.cast(y_true, dtype=tf.int64)
         y_pred = tf.argmax(y_pred, axis=-1)
-        y_true = tf.reshape(y_true, (y_true.shape[0],))
-        y_pred = tf.reshape(y_pred, (y_pred.shape[0],))
+        y_true = tf.squeeze(y_true)
+        y_pred = tf.squeeze(y_pred)
 
         # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
@@ -172,7 +168,6 @@ class CohenKappa(Metric):
     
     
     def update_values(self, y_true, y_pred, sample_weight=None):
-        print("Normal updates")
         y_true = tf.cast(y_true, dtype=tf.int64)
         y_pred = tf.cast(y_pred, dtype=tf.int64)
 
