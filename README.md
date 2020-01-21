@@ -78,7 +78,6 @@ The call to `update_state()` in this scenario should do something like this:<br>
 ```python
 
 def update_state(self, y_true, y_pred, sample_weight=None):
-    y_true = tf.cast(y_true, dtype=tf.int64)
     y_pred = tf.cast(tf.argmax(y_pred), dtype=tf.int64)
     
     ###### Checks ################
@@ -101,3 +100,104 @@ def update_state(self, y_true, y_pred, sample_weight=None):
     return self.conf_mtx.assign_add(new_conf_mtx)
 
 ```
+
+### Case3: 
+This is an odd case. In many scenarios, especially on Kaggle competitions, it has been found that it is better to do regression for predicting labels instead of treating it as a classification problem. For example, if there are 5 classes, then instead of treating it as a mutli-class classificatiion, we treat it as a regression problem where the predictions are either rounded off for the nearest integer label or a different threshold is chosen for each class. 
+
+We don't want to complicate the API design. Hence we will only consider the scenario where will round off the predictions to the nearest integer label, calculate the kappa score and return it. 
+
+In this case, the model would look something like this:
+```python
+
+model = Sequential()
+model.add(..)
+...
+model.add(Dense(1))
+model.compile(loss='mse', optimier='sgd', metrics=[CohensKappa(num_classes=num_classes)])
+model.fit(..)
+
+```
+In this case
+
+`y_pred` shape: (num_samples, 1)<br>
+`y_true` shape: (num_samples, )<br>
+
+The call to `update_state()` in this scenario should do something like this:<br>
+```python
+
+def update_state(self, y_true, y_pred, sample_weight=None):
+    y_true = tf.cast(y_true, dtype=tf.int64)
+    
+    # Round off the predictions to predict the label
+    y_pred = tf.cast(tf.round(y_pred), dtype=tf.int64)
+
+    # compute the new values of the confusion matrix
+    new_conf_mtx = tf.math.confusion_matrix(
+        labels=y_true,
+        predictions=y_pred,
+        num_classes=self.num_classes,
+        weights=sample_weight,
+        dtype=tf.float32)
+
+    # update the values in the original confusion matrix
+    return self.conf_mtx.assign_add(new_conf_mtx)
+
+```
+
+
+## Suggested Changes
+In order to incorporate all the three scenarios, I propose the following signature for the constructor:<br>
+```python
+
+class CohenKappa(Metric):
+    def __init__(self,
+                 num_classes,
+                 weightage=None,
+                 round_pred=False,
+                 sparse_labels=False,
+                 name='cohen_kappa',
+                 dtype=None):
+        """Creates a `CohenKappa` instance.
+        Args:
+          num_classes: Number of unique classes in your dataset.
+          weightage: (Optional) Weighting to be considered for calculating
+            kappa statistics. A valid value is one of
+            [None, 'linear', 'quadratic']. Defaults to `None`.
+          round_pred: (bool) If set to true that means regression model is used
+            and we need to round the predictions. Defualts to False
+          sparse_lables: (bool) If truue, that means we are dealing with a
+            multi-class classification problem but the labes aren't OHE
+          name: (Optional) String name of the metric instance.
+          dtype: (Optional) Data type of the metric result.
+            Defaults to `None`.
+        Raises:
+          ValueError: If the value passed for `weightage` is invalid
+            i.e. not any one of [None, 'linear', 'quadratic']
+        """
+        
+        if round_pred == False:
+            self.__reg_model = False
+            self.update_state = update_reg_model
+        
+        if num_classes == 2:
+            self.__binary_class_moel = True
+            self.update_state = update_binary_class_model
+            
+        if sparse_labels and num_classes > 2:
+            self.__multi_class_model = True
+            self.update_state = update_multi_class_model
+            
+        def update_reg_model(self, y_true, y_pred, sample_weight=None):
+            ....
+            
+        def update_binary_class_model(self, y_true, y_pred, sample_weight=None):
+            ...
+            
+        def update_multi_class_model(self, y_true, y_pred, sample_weight=None):
+             ...
+        
+            
+
+```
+
+### Questions:
