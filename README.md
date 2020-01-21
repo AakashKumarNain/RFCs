@@ -26,7 +26,7 @@ model = Sequential()
 model.add(..)
 ...
 model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimier='sgd', metrics=['accuracy', 
+model.compile(loss='binary_crossentropy', optimizer='sgd', metrics=['accuracy', 
                                                                     CohensKappa(num_classes=2)])
 model.fit(..)
 
@@ -64,7 +64,7 @@ model = Sequential()
 model.add(..)
 ...
 model.add(Dense(num_classes, activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimier='sgd', metrics=['accuracy', 
+model.compile(loss='categorical_crossentropy', optimizer='sgd', metrics=['accuracy', 
                                                                     CohensKappa(num_classes=num_classes)])
 model.fit(..)
 
