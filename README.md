@@ -214,12 +214,15 @@ class CohenKappa(Metric):
         super().__init__(name=name, dtype=dtype)
         
         if from_activations:
-            if round_pred or num_classes==2:
+            if round_pred:
                 self.update = self.update_reg_model
             elif sparse_labels:
                 self.update = self.update_multi_class_sparse_model
             else:
-                self.update = self.update_multi_class_model
+                if num_classes==2:
+                    self.update = self.update_binary_class_model
+                else:
+                    self.update = self.update_multi_class_model
         else:
             self.update = self.update_values
         
@@ -239,4 +242,4 @@ class CohenKappa(Metric):
 ```
 
 ### Questions:
-Feel free to drop any concerns/suggestions here
+If you have any questions/concerns, please feel free to drop a comment in the `cohens_kappa.py` file.
