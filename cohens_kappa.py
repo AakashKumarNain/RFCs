@@ -80,8 +80,7 @@ class CohenKappa(Metric):
                     self.update = self.update_multi_class_model
         else:
             self.update = self.update_values
-        
-            
+               
         if weightage not in (None, 'linear', 'quadratic'):
             raise ValueError("Unknown kappa weighting type.")
 
@@ -93,6 +92,7 @@ class CohenKappa(Metric):
             initializer=tf.keras.initializers.zeros,
             dtype=tf.float32)
         
+    
     def update_state(self, y_true, y_pred, sample_weight=None):
         return self.update(y_true, y_pred, sample_weight)
         
@@ -100,34 +100,27 @@ class CohenKappa(Metric):
     def update_reg_model(self, y_true, y_pred, sample_weight=None):
         y_true = tf.squeeze(tf.cast(y_true, dtype=tf.int64))
         y_pred = tf.squeeze(tf.cast(tf.math.round(y_pred), dtype=tf.int64))
-
-
-        # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
             labels=y_true,
             predictions=y_pred,
             num_classes=self.num_classes,
             weights=sample_weight,
             dtype=tf.float32)
-
-        # update the values in the original confusion matrix
         return self.conf_mtx.assign_add(new_conf_mtx)
+    
+    
     
     def update_binary_class_model(self, y_true, y_pred, sample_weight=None):
         y_true = tf.cast(y_true, dtype=tf.int64)
         y_pred = tf.cast(y_pred > 0.5, dtype=tf.int64)   
         y_true = tf.squeeze(y_true)
         y_pred = tf.squeeze(y_pred)
-
-        # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
             labels=y_true,
             predictions=y_pred,
             num_classes=self.num_classes,
             weights=sample_weight,
             dtype=tf.float32)
-
-        # update the values in the original confusion matrix
         return self.conf_mtx.assign_add(new_conf_mtx)
 
         
@@ -135,16 +128,12 @@ class CohenKappa(Metric):
     def update_multi_class_model(self, y_true, y_pred, sample_weight=None):
         y_true = tf.cast(tf.argmax(y_true, axis=-1), dtype=tf.int64)
         y_pred = tf.cast(tf.argmax(y_pred, axis=-1), dtype=tf.int64)
-
-        # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
             labels=y_true,
             predictions=y_pred,
             num_classes=self.num_classes,
             weights=sample_weight,
             dtype=tf.float32)
-
-        # update the values in the original confusion matrix
         return self.conf_mtx.assign_add(new_conf_mtx)
     
     
@@ -154,33 +143,27 @@ class CohenKappa(Metric):
         y_pred = tf.argmax(y_pred, axis=-1)
         y_true = tf.squeeze(y_true)
         y_pred = tf.squeeze(y_pred)
-
-        # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
             labels=y_true,
             predictions=y_pred,
             num_classes=self.num_classes,
             weights=sample_weight,
             dtype=tf.float32)
-
-        # update the values in the original confusion matrix
         return self.conf_mtx.assign_add(new_conf_mtx)
+    
     
     
     def update_values(self, y_true, y_pred, sample_weight=None):
         y_true = tf.cast(y_true, dtype=tf.int64)
         y_pred = tf.cast(y_pred, dtype=tf.int64)
-
-        # compute the new values of the confusion matrix
         new_conf_mtx = tf.math.confusion_matrix(
             labels=y_true,
             predictions=y_pred,
             num_classes=self.num_classes,
             weights=sample_weight,
             dtype=tf.float32)
-
-        # update the values in the original confusion matrix
         return self.conf_mtx.assign_add(new_conf_mtx)
+    
     
     
     def result(self):
