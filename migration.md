@@ -22,7 +22,7 @@ To address this, we propose the following solutions for now:
 
 2. Using `Optimizers` directly from addons isn't feasible for now as the implementations on both the sides var a lot. Having two different implementations for the same `optimizer` can create a lot of confusion to the end user. Also, the `optimizer` API is going to be `revampled`, so we don't want to refactor things till the time we have a `RFC` for a new and stabel API from the tensorflow team. To avoid confusion, we can make the `optimizers` implementation in `model garden` private and provide a link to the end user, pointing to `addons` implementation for general purpose usage.
 
-3. 
+3. We need a minimal `CI` for the `model garden` to test the functionalities used from `adons`. Lack of CI makes it hard for the community to contribute to the model garden. But running models from end-to-end for every single change can be pretty expensive, hence we propose the following 
 
 
 
