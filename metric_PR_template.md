@@ -18,3 +18,19 @@ print("Results: ", m.numpy())
 ```
 
 **Note**: The tensor can be a single example or a batch.
+
+
+### Case II: Classification/Regression moels, etc.
+
+The following cases needed to be handled (applicable as per the metric usage):
+
+1. **Binary classification**: should work with/without OHE 
+2. **Multiclass-classification**: should work with OHE/sparse labels
+3. **Regression**: (need to discuss any special case if applicable apart from general sceanrio)
+
+If `my_metric`, is handling all these scenarios, then a better way to keep the code short, clean and easy to track is to split the metric implementation for different use cases in separate PRS with specific implementation. 
+
+**Note**: The `naming` convention and the semantics of the separate implementations for a user should be the same ideally.
+
+### Case III: model.fit() with Sequential/Model API and custom training/evalaution loops 
+
