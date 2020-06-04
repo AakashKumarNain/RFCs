@@ -63,5 +63,20 @@ If `my_metric`, is handling all these scenarios, then a better way to keep the c
 
 **Note**: The `naming` convention and the semantics of the separate implementations for a user should be the same ideally.
 
-### Case III: model.fit() with Sequential/Model API and custom training/evalaution loops 
+### Case III: model.fit() with Sequential/Model API
+
+The metric should work with the `Model` and `Sequential` API in keras. For example,
+
+```python
+
+model = Model(..)
+
+m = my_metric(**args, **kwargs)
+model.compile(..., mettic=[m])
+model.fit(...)
+```
+
+For more examples on `metric` in keras, please check out this [guide](https://keras.io/api/metrics/)
+
+
 
