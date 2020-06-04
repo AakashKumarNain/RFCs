@@ -78,5 +78,9 @@ model.fit(...)
 
 For more examples on `metric` in keras, please check out this [guide](https://keras.io/api/metrics/)
 
+### Case IV: `Distributed` training
 
+
+
+### case V: TPU strategy 
 
